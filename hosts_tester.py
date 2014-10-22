@@ -55,10 +55,13 @@ def main():
 	hosts_in=open(hosts_in_filename,'r')
 	hosts_out=open(hosts_out_filename,'w+')
 	log_out = open(log_filename,'a')
-	log_out.write("test %s" % datetime.datetime.now())
+	log_out.write("Testing hosts file '%s' at %s" % (hosts_in_filename,datetime.datetime.now()))
+
 	def log_write(msg):
 		print msg
 		log_out.write(msg + '\n')
+
+	available_hosts = []
 	for line in hosts_in.readlines():
 		if line.strip() == '':
 			hosts_out.write(line)
@@ -69,12 +72,16 @@ def main():
 			continue
 		ip = arr[0]
 		host = arr[1]
-
+		if ip in available_hosts:
+			log_write("%s\t%s\t%s" % ('tested',ip,host))
+			hosts_out.write(line)
+			continue
 		for time in range(attempt_times):
 			result = test_host(ip,host)
 			log_write("%s\t%s\t%s" % (result,ip,host))
 			if result == 'success' or result == 'https':
 				hosts_out.write(line)
+				available_hosts.append(ip)
 				break
 			else:
 				if time + 1 == attempt_times:
